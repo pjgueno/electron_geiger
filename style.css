@@ -1,0 +1,54 @@
+body {font-family: Arial;
+}
+
+
+#left{
+    position:absolute;
+    top:0px;
+    left:0px;
+    width:20vw;
+    height: 100vh;
+    display: flex;
+    flex-flow: column wrap;
+    align-items: center;
+}
+
+#right{
+    position:absolute;
+    top:0px;
+    right:0px;
+    width:80vw;
+    height: 100vh;
+    float:right;
+}
+
+#ports{
+    width:100px;   
+}
+
+#linechart{
+    width:700px;
+    height: 460px;
+}
+
+.line {
+  fill: none;
+/*  stroke: red;*/
+  stroke-width: 2px;
+}
+
+.button {
+    border: none;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+}
+
+#refresh{
+    background-color: #ccc;
+    color: black;   
+}

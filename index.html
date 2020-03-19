@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+  <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Serial</title>
+    <link rel="stylesheet" type="text/css" href="./style.css">
+        
+        
+    </head>
+    <body>
+    
+    <div id="left">
+
+    <div id="error"></div>
+    <br>
+        
+    <button id="refresh" onclick="">Refresh ports</button>
+    <br>  
+    <br>  
+    <select id="ports" name="ports"></select>
+    <br> 
+            
+    </div>  
+        
+    <div id="right">
+    
+    <h3>Compteur Geiger</h3>
+    <br>
+    <div id="value1"></div>
+    <div id="value2"></div>    
+    <br> 
+    <br>
+    <div>
+    <input type="radio" id="cpm" value="cpm" name="selec">
+    <label for="male">CPM</label>
+    </div>
+    <div>
+    <input type="radio" id="usvh" name="selec" value="usvh" checked>
+    <label for="female">Radiation</label>
+    </div>
+    <br> 
+    <br>
+    <div id ="graphd3"></div>               
+    
+    </div>
+        
+    </body>
+      <script> 
+          require('./renderer.js')
+      </script>
+  </html>
