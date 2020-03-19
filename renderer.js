@@ -1,11 +1,21 @@
 const Serialport = require('serialport');
 const ByteLength = require('@serialport/parser-byte-length');
 const d3 = require('d3');
+const {dialog} = require('electron').remote;
+const fs = require('fs');
 
 var dataGraph=[];
 
 var port;
 var parser;
+
+var datePrecedente = new Date();
+
+var dateStart = datePrecedente;
+
+var duree = 0;
+
+var expositionTotale = 0;
 
 Serialport.list().then(
     ports => {
@@ -71,12 +81,58 @@ document.addEventListener('DOMContentLoaded',function() {
     document.querySelector('input[id="usvh"]').onclick=updateGraph;
 },false);
 
+document.addEventListener('DOMContentLoaded',function() {
+    document.querySelector('input[id="usvhm"]').onclick=updateGraph;
+},false);  
+
+document.addEventListener('DOMContentLoaded',function() {
+    document.querySelector('input[id="expotot"]').onclick=updateGraph;
+},false);  
+
+
+document.addEventListener('DOMContentLoaded',function() {
+    document.querySelector('button[id="save"]').onclick=saveData;
+},false);
+
+function saveData(event) {
+    
+    var formatTime = d3.timeFormat("D%Y_%m_%dT%H_%M_%S");
+    var file = formatTime(new Date);
+    
+    dialog.showSaveDialog({
+        title: "Save Data",
+        defaultPath:"/Users/PJ/Desktop/" + file +".csv",
+        properties: ['createDirectory', 'showOverwriteConfirmation']
+    }).then(function(result){
+        
+        console.log(result.filePath)
+    
+if (dataGraph != 0){
+    
+    var replacer = (key, value) => value === null ? '' : value; // specify how you want to handle null values here
+var header = Object.keys(dataGraph[0]);
+
+var csv = dataGraph.map(row => header.map(fieldName => JSON.stringify(row[fieldName], replacer)).join(';'));
+csv.unshift(header.join(';'));
+csv = csv.join('\r\n');
+
+console.log(csv);
+    
+fs.writeFile(result.filePath, csv, (err) => {
+  if (err) throw err;
+        
+         dialog.showMessageBox({
+            message: 'The file has been saved!',
+            buttons: ['OK']
+          });
+})}else{console.log("NO DATA")}});   
+};
+
+
+
 function updateGraph(event) {
     
-    x.domain(d3.extent(dataGraph, (d) => d.date));
-            
-    console.log(document.getElementById("cpm").checked);
-    
+    x.domain(d3.extent(dataGraph, (d) => d.date));    
     
         y.domain([0,d3.max(dataGraph,function(d){            
             if(document.getElementById("cpm").checked == true){
@@ -84,8 +140,16 @@ function updateGraph(event) {
                };
             if(document.getElementById("usvh").checked == true){
                return d.value2
-               }})]);
-         //(d) => d.value1)]
+               };
+        if(document.getElementById("usvhm").checked == true){
+               return d.value3
+               };
+            if(document.getElementById("expotot").checked == true){
+               return d.value4
+               }
+        
+        
+        })]);
                 
         var svg = d3.select("#graphd3").transition();
         
@@ -98,6 +162,12 @@ function updateGraph(event) {
                };
             if(document.getElementById("usvh").checked == true){
                return "blue"
+               };
+            if(document.getElementById("usvhm").checked == true){
+               return "green"
+               };
+            if(document.getElementById("expotot").checked == true){
+               return "black"
                }
             });
 
@@ -121,31 +191,16 @@ function updateGraph(event) {
                };
             if(document.getElementById("usvh").checked == true){
                return "\u03BCS/h"
+               };
+            if(document.getElementById("usvhm").checked == true){
+               return "\u03BCS/h"
+               };
+            if(document.getElementById("expotot").checked == true){
+               return "\u03BCS"
                }
             }); 
     
-//     var ytext = d3.select(".y axis").transition();
-//    
-//    console.log(ytext);
-//    
-//    ytext.select('text')
-//    .duration(250)
-//    .text(function() {
-//            console.log('asdasdasd');
-//        
-//            if(document.getElementById("cpm").checked == true){
-//               return "CPM"
-//               };
-//            if(document.getElementById("usvh").checked == true){
-//               return "\u03BCS/h"
-//               }
-//            });
-//  
 };
-
-
-
-
 
 
 function readSerial(){
@@ -157,13 +212,27 @@ function readSerial(){
         console.log(cpm);
         
         var usvh = cpm*0.00812037;
+        
         document.getElementById('value1').innerHTML = "CPM= " + cpm;
         document.getElementById('value2').innerHTML = "Radiation= " + usvh.toFixed(4) + " &microS/h";
-        
                 
         var date = new Date();
-         
-        var datasample ={date:date,value1:+cpm,value2:+usvh};
+        
+        var elapsed = d3.timeSecond.count(datePrecedente,date);
+        var elapsedStart = d3.timeSecond.count(dateStart,date);                
+        var exposition = (usvh/3600)*elapsed;
+        
+        expositionTotale += exposition;
+                
+        var usvhMoyenne = (expositionTotale/elapsedStart)*3600;
+        
+        duree += elapsed;
+        datePrecedente = date;
+        
+        document.getElementById('value3').innerHTML = "Radiation moyenne= " + usvhMoyenne.toFixed(4) + " &microS/h";
+        document.getElementById('value4').innerHTML = "Exposition totale= " + expositionTotale.toFixed(5) + " &microS";
+
+        var datasample ={date:date,value1:+cpm,value2:+usvh.toFixed(4),value3:+usvhMoyenne.toFixed(4),value4:+expositionTotale.toFixed(5)};
         
         dataGraph.push(datasample);
         
@@ -175,7 +244,15 @@ function readSerial(){
                };
             if(document.getElementById("usvh").checked == true){
                return d.value2
-               }})]);
+               };
+        if(document.getElementById("usvhm").checked == true){
+               return d.value3
+               };
+            if(document.getElementById("expotot").checked == true){
+               return d.value4
+               }
+    
+        })]);
          //(d) => d.value1)]
                 
         var svg = d3.select("#graphd3").transition();
@@ -200,10 +277,7 @@ function readSerial(){
     });
 };
 
- 
-                  
-                  
-                  
+            
 var svg = d3.select("#graphd3").append("svg")
             .style("visibility","visible")
             .attr("id","linechart");
@@ -211,9 +285,6 @@ var svg = d3.select("#graphd3").append("svg")
  
     var widthGraph = 600;
     var heightGraph = 400;
-
-    console.log(widthGraph);
-    console.log(heightGraph);
     
     var margin = {top: 20, right: 10, bottom: 30, left: 40},
     width = widthGraph - margin.left - margin.right,
@@ -223,15 +294,22 @@ var svg = d3.select("#graphd3").append("svg")
     var y = d3.scaleLinear().range([height, 0]);    
     
     var valueline = d3.line()
-        .curve(d3.curveBasis)
+        //.curve(d3.curveBasis)
+        .curve(d3.curveMonotoneX)
         .x(function(d) {return x(d.date)})
-        //.y(function(d) {return y(d.value1)});
         .y(function(d) {
+                        
             if(document.getElementById("cpm").checked == true){
                return y(d.value1)
                };
             if(document.getElementById("usvh").checked == true){
                return y(d.value2)
+               };
+            if(document.getElementById("usvhm").checked == true){
+               return y(d.value3)
+               };
+            if(document.getElementById("expotot").checked == true){
+               return y(d.value4)
                }
             });
        
@@ -245,7 +323,14 @@ var svg = d3.select("#graphd3").append("svg")
                };
             if(document.getElementById("usvh").checked == true){
                return d.value2
-               }})]);
+               };
+            if(document.getElementById("usvhm").checked == true){
+               return d.value3
+               };
+            if(document.getElementById("expotot").checked == true){
+               return d.value4
+               }
+        })]);
 
    svg.append("path")
       .data([dataGraph])
@@ -258,6 +343,12 @@ var svg = d3.select("#graphd3").append("svg")
                };
             if(document.getElementById("usvh").checked == true){
                return "blue"
+               };
+            if(document.getElementById("usvhm").checked == true){
+               return "green"
+               };
+            if(document.getElementById("expotot").checked == true){
+               return "black"
                }
             });
         
@@ -302,6 +393,12 @@ svg.append("g")
                };
             if(document.getElementById("usvh").checked == true){
                return "\u03BCS/h"
+               };
+            if(document.getElementById("usvhm").checked == true){
+               return "\u03BCS/h"
+               };
+            if(document.getElementById("expotot").checked == true){
+               return "\u03BCS"
                }
             }); 
 

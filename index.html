@@ -15,19 +15,22 @@
     <br>
         
     <button id="refresh" onclick="">Refresh ports</button>
-    <br>  
-    <br>  
+    <br>   
     <select id="ports" name="ports"></select>
     <br> 
-            
+    <br>
+    <button id="save" onclick="">Save data</button>
+
     </div>  
         
     <div id="right">
     
     <h3>Compteur Geiger</h3>
     <br>
-    <div id="value1"></div>
-    <div id="value2"></div>    
+    <div id="value1">CPM= </div>
+    <div id="value2">Radiation= </div>
+    <div id="value3">Radiation moyenne= </div>
+    <div id="value4">Exposistion totale= </div>
     <br> 
     <br>
     <div>
@@ -38,7 +41,14 @@
     <input type="radio" id="usvh" name="selec" value="usvh" checked>
     <label for="female">Radiation</label>
     </div>
-    <br> 
+    <div>
+    <input type="radio" id="usvhm" name="selec" value="usvhm">
+    <label for="female">Radiation moyenne</label>
+    </div>
+    <div>
+    <input type="radio" id="expotot" name="selec" value="expotot">
+    <label for="female">Exposition totale</label>
+    </div>
     <br>
     <div id ="graphd3"></div>               
     
